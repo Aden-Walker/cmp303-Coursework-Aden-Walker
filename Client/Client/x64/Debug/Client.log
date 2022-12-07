@@ -1,0 +1,11 @@
+﻿  Client.cpp
+E:\University stuff\CMP303\Coursework\Client\Client\Client.cpp(19,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+E:\University stuff\CMP303\Coursework\Client\Client\Client.cpp(57,9): error C2228: left of '.window' must have class/struct/union
+E:\University stuff\CMP303\Coursework\Client\Client\Client.cpp(57,9): message : type is '_Ty'
+          with
+          [
+              _Ty=GameObject *
+          ]
+E:\University stuff\CMP303\Coursework\Client\Client\Client.cpp(57,9): message : did you intend to use '->' instead?
+  GameObject.cpp
+  Generating Code...
