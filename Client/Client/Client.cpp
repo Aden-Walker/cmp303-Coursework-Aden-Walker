@@ -1,34 +1,39 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
-#include <SFML\System.hpp>
+#include <SFML/System.hpp>
 #include <iostream>
 #include <vector>
 #include "GameObject.h"
+#include <chrono>
+#include <thread>
 
+
+sf::Vector2f lerp(sf::Vector2f pos1, sf::Vector2f pos2, float time) {
+    return (1 - time) * pos1 + time * pos2;
+}
 
 int main()
 {
     //initialise keyboard input
     sf::Keyboard keys;
-  
+    bool updateInput = true;
+    
+    // clock object
+    sf::Clock clock;
 
     //player objects and vector for bullets
-    std::vector<GameObject*> players;
-    std::vector<GameObject*> bullets;
-    sf::Sprite player1;
-    players.push_back(new GameObject);
-    players.push_back(new GameObject);
-    players[0]->controller = 0; // 0 will be this user 
-    players[1]->controller = 1; // 1 is the opponent
+    GameObject player0;
+    GameObject player1;
+    
+    
 
-    players[0]->setPosition(sf::Vector2f(10, 150));
-    players[0]->setPosition(sf::Vector2f(390, 150));
+    float syncTimer = 5.f;
 
 
 
     srand(time(NULL));
 
-    sf::RenderWindow window(sf::VideoMode(400, 300), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(400, 300), "CMP303 Client");
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
 
@@ -53,19 +58,80 @@ int main()
     socket.send(namePacket);
     std::cout << "Sent My Name: " << playerName << "\n";
 
+    socket.receive(idPacket);
+    float startX, startY;
+    if (idPacket >> startX >> startY) {
+        player0.setPosition(sf::Vector2f(startX, startY));
+    }
+
+
+    
+
     while (window.isOpen())
     {
+        sf::Time deltaTime = clock.restart();
+
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) 
                 window.close();
-        }
+            if (event.type == sf::Event::GainedFocus) {
+                updateInput = true;
+                window.setTitle("SFML Client In Focus");
+            }
 
-        window.clear();
-        window.draw(players[0]->getSprite());
+            if (event.type == sf::Event::LostFocus) {
+                updateInput = false;
+                window.setTitle("SFML Client Not In Focus");
+            }
+        }
+        
+        // handle user input
+        if (updateInput) {
+            player0.handleInput(deltaTime.asSeconds(), keys);
+            player0.setPosition(player0.getSprite().getPosition() + player0.getSpeed());
+        }
+ 
+        //send user position
+        enumID = 1; // 1 is position
+        sf::Packet positionPacket;
+        sf::Vector2f playerPos = player0.getSprite().getPosition();
+        positionPacket << enumID << playerPos.x << playerPos.y;
+        socket.send(positionPacket);
+
+        //send user speed
+        //enumID = 2;
+        // TODO
+
+        sf::Packet recievePacket;
+        sf::SocketSelector selector;
+        selector.add(socket);
+        //recieve data and interpolate
+        selector.wait();
+        if (socket.receive(recievePacket) == sf::Socket::Done) {
+         
+            int packetType;
+            int x, y;
+            recievePacket >> packetType >> x >> y;
+            if (packetType == 1) {
+                if ((int)player1.getSprite().getPosition().x != x || (int)player1.getSprite().getPosition().y != y) {
+                   
+                    player1.setPosition(sf::Vector2f(x, y));
+                }
+                
+            }
+        }
+        
+        
+
+
+        window.clear(sf::Color(247, 226, 166));
+        window.draw(player0.getSprite());
+        window.draw(player1.getSprite());
         window.display();
     }
 
     return 0;
 }
+

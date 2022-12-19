@@ -1,16 +1,28 @@
 #include <SFML/Graphics.hpp>
 #include "NetworkServerManager.h"
+#include <thread>
+#include <chrono>
 
 NetworkServerManager server;
 
+
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-    sf::CircleShape shape(100.f);
+    sf::RenderWindow window(sf::VideoMode(400, 300), "SFML server");
+    sf::CircleShape shape(10.f);
+    sf::CircleShape shape1(10.f);
     shape.setFillColor(sf::Color::Green);
+    shape1.setFillColor(sf::Color::Green);
+    
+    sf::Clock clock;
 
-    while (window.isOpen())
-    {
+
+    while (window.isOpen()){
+        //only update every 20th of a second
+        sf::Time deltaTime = clock.restart();
+        if (deltaTime.asSeconds() < 1 / 20.f) {
+            std::this_thread::sleep_for(std::chrono::milliseconds((100 / 2) - deltaTime.asMilliseconds()));
+        }
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -20,21 +32,25 @@ int main()
 
         //IN THE GAME LOOP WE HAVE TO CALL THE NETWORK MANAGER FUNCTIONS!
 
-        //The example here does the following:
         //Check if the server is full
         //If it isn't continue to check for new connections
-        //YOU CAN ADD MORE CONDITIONS!
         if (!server.isServerFull()) {
             server.listenForClients();
         }
         
-        //You have to check every frame or every X time if any of the sockets have received data
-        //If they have then you can process afterwards!
-        server.receivePackets();
+        //check if any sockets have recieved data
+        server.receivePackets(deltaTime.asSeconds());
 
+
+        //send player positions;
+        server.sendPlayerData();
+
+        shape.setPosition(server.player0.getPosition());
+        shape1.setPosition(server.player1.getPosition());
 
         window.clear();
         window.draw(shape);
+        window.draw(shape1);
         window.display();
     }
 

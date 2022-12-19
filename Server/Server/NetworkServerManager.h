@@ -1,13 +1,14 @@
 #pragma once
 #include <SFML/Network.hpp>
 #include <iostream>
+#include "GameObject.h"
+#include <vector>
 
 class NetworkServerManager
 {
 	enum PACKETTYPE {
-		NAME,
-		POSITION,
-		SPEED
+		NAME = 0,
+		POSITION
 	};
 
 
@@ -31,8 +32,19 @@ public:
 
 	void listenForClients();
 	
-	void sendPacketToClient(sf::TcpSocket* client, sf::Packet packet); //Call this simple function whenever you to send a packet to a client, you can even use a loop to send something to every client!
+	void sendPacketToClient(sf::TcpSocket* client, sf::Packet packet); 
 	
-	void receivePackets();
+	void receivePackets(float deltaTime);
+
+	void predictPositions(sf::TcpSocket* client, float deltaTime);
+
+	void sendPlayerData();
+
+	sf::Vector2f lerp(sf::Vector2f pos1, sf::Vector2f pos2, float time);
+
+
+
+	GameObject player0;
+	GameObject player1;
 };
 

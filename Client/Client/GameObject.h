@@ -13,7 +13,6 @@ public:
 	sf::Vector2f getSpeed();
 	void setSpeed(sf::Vector2f newSpeed);
 	void setPosition(sf::Vector2f newPos);
-	int controller;
 	sf::Sprite getSprite();
 
 
@@ -23,8 +22,9 @@ protected:
 	sf::FloatRect hitbox;
 
 	//member functions
-	void setHitbox(float x, float y, float height, float width) { hitbox = sf::FloatRect(x, y, height, width); }
-	sf::Texture* texture;
+	
+	sf::Texture texture;
 	sf::Sprite* sprite;
+
 };
 
